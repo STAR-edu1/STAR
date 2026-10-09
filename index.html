@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S.T.A.R - Astrophysicist & Water Rocket Builder</title>
+    <title>S.T.A.R</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Inter -->
@@ -56,6 +56,7 @@
 </head>
 <body class="h-full flex flex-col bg-chat-bg text-gray-100 relative overflow-hidden">
 
+    <!-- Header -->
     <header class="bg-chat-bg border-b border-chat-border/60 px-4 py-3 flex items-center justify-between z-10">
         <div class="flex items-center space-x-3">
             <div class="w-8 h-8 rounded-full bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold">
@@ -69,27 +70,33 @@
         </div>
 
         <div class="flex items-center space-x-2">
+            <!-- API Key Configuration Button -->
+            <button id="config-btn" onclick="toggleModal(true)" class="flex items-center space-x-2 bg-zinc-800 hover:bg-chat-hover border border-chat-border text-gray-300 px-3 py-1.5 rounded-lg text-xs font-medium transition">
+                <i class="fa-solid fa-key text-gray-400"></i>
+                <span id="api-key-status" class="hidden sm:inline">API Key Config</span>
+            </button>
             <!-- Clear Chat Button -->
-            <button onclick="clearChat()" title="Clear Chat History" class="bg-zinc-800 hover:bg-chat-hover border border-chat-border text-gray-400 hover:text-gray-200 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+            <button onclick="clearChat()" title="Clear Chat History" class="bg-zinc-800 hover:bg-chat-hover border border-chat-border text-gray-400 hover:text-gray-200 p-2 rounded-lg text-xs transition">
                 <i class="fa-solid fa-trash-can"></i>
-                <span class="hidden sm:inline">Clear Chat</span>
             </button>
         </div>
     </header>
 
+    <!-- Main Chat Area -->
     <main class="flex-1 overflow-y-auto p-4 sm:p-6 max-w-3xl w-full mx-auto flex flex-col space-y-6 z-10" id="chat-container">
-        <!-- Initial welcome message -->
+        <!-- Initial message -->
         <div class="flex items-start space-x-4">
             <div class="w-8 h-8 rounded-full bg-emerald-600/20 border border-emerald-500/30 flex-shrink-0 flex items-center justify-center text-emerald-400 text-xs">
                 <i class="fa-solid fa-user-astronaut"></i>
             </div>
             <div class="pt-1 text-sm sm:text-base text-gray-200 leading-relaxed max-w-2xl">
                 <p class="font-medium text-gray-100 mb-1">S.T.A.R</p>
-                <p>Greetings, Engineers. I am STAR stands for supervised trajectory and aerodynamic research, here to assist you so feel free to as about anyting.</p>
+                <p>Greetings, Engineers. Ask me anything about astrophysics or water rocketry—I'll keep it concise unless you ask for a deep dive.</p>
             </div>
         </div>
     </main>
 
+    <!-- Typing Indicator (Hidden by default) -->
     <div id="typing-indicator" class="hidden max-w-3xl w-full mx-auto px-4 sm:px-6 mb-4 z-10">
         <div class="flex items-start space-x-4">
             <div class="w-8 h-8 rounded-full bg-emerald-600/20 border border-emerald-500/30 flex-shrink-0 flex items-center justify-center text-emerald-400 text-xs">
@@ -103,6 +110,7 @@
         </div>
     </div>
 
+    <!-- Input Footer -->
     <footer class="bg-chat-bg p-4 z-10">
         <div class="max-w-3xl mx-auto flex items-end bg-chat-surface border border-chat-border rounded-2xl px-3 py-2 focus-within:border-zinc-500 transition-colors">
             <textarea id="user-input" rows="1" placeholder="Message S.T.A.R..." class="flex-1 bg-transparent text-sm text-gray-100 placeholder-gray-500 focus:outline-none resize-none max-h-32 px-2 py-1.5" onkeydown="handleKeyDown(event)"></textarea>
@@ -112,77 +120,97 @@
         </div>
         <div class="max-w-3xl mx-auto mt-2 flex items-center justify-between text-xs text-gray-500 px-2">
             <span>Press Enter to send</span>
-            <span>Status: online</span>
+            <span id="key-hint" class="text-gray-500">API Key required</span>
         </div>
     </footer>
 
-    <!-- Notification / Toast Container -->
-    <div id="toast-container" class="fixed bottom-16 right-4 z-50 flex flex-col space-y-2"></div>
+    <!-- API Key Modal -->
+    <div id="api-modal" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-chat-surface border border-chat-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="font-semibold text-base text-gray-100 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-gray-400"></i> API Key Configuration
+                </h3>
+                <button onclick="toggleModal(false)" class="text-gray-400 hover:text-gray-200 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed">
+                Enter your Gemini API key below. Your key is saved strictly in your browser's local storage and sent directly to Google.
+            </p>
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">API Key</label>
+                <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full bg-chat-bg border border-chat-border rounded-xl px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-zinc-500">
+            </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="toggleModal(false)" class="px-4 py-2 rounded-xl text-xs font-medium bg-zinc-800 hover:bg-chat-hover text-gray-300 transition">Cancel</button>
+                <button onclick="saveApiKey()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-gray-200 text-black shadow-xs transition">Save Key</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- JavaScript Application Logic -->
     <script>
-        // Embedded Gemini API Key directly into the website
-        const API_KEY = "AQ.Ab8RN6IX1cN5zE34qLApO8VoDxzLIlp4BWFitIDuuhGLjUNlJg";
-
-        // System Instruction defining the S.T.A.R persona
+        // Updated Prompt: Short, direct answers by default unless deep dive requested
         const SYSTEM_INSTRUCTION = `You are S.T.A.R, an AI hybrid between a brilliant professional astrophysicist and an obsessive DIY water rocket builder.
 Keep your answers extremely straightforward, short, and to the point by default.
 ONLY provide detailed explanations, deep dives, step-by-step math, or multi-paragraph responses if the user explicitly asks you to "deep dive", "explain in detail", "elaborate", or asks for a full breakdown.
-Maintain an energetic, witty, space-enthusiast tone without using emojis in your responses.`;
+Maintain a energetic, witty, space-enthusiast tone without using emojis in your responses.`;
 
-        const STORAGE_KEY = 'star_chat_history';
         let chatHistory = [];
+        let apiKey = localStorage.getItem('gemini_api_key') || '';
         let isGenerating = false;
 
         window.onload = function() {
+            checkApiKeyStatus();
+            if (!apiKey) {
+                setTimeout(() => toggleModal(true), 500);
+            }
+            
             const textarea = document.getElementById('user-input');
             textarea.addEventListener('input', function() {
                 this.style.height = 'auto';
                 this.style.height = (this.scrollHeight) + 'px';
             });
-
-            // Restore conversation from localStorage on load
-            loadChatHistory();
         };
 
-        function saveChatHistory() {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
-            } catch (e) {
-                console.error("Failed to save chat history:", e);
+        function toggleModal(show) {
+            const modal = document.getElementById('api-modal');
+            if (show) {
+                document.getElementById('api-key-input').value = apiKey;
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
             }
         }
 
-        function loadChatHistory() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (!saved) return;
-
-            try {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    chatHistory = parsed;
-                    const container = document.getElementById('chat-container');
-                    container.innerHTML = ''; // Remove static initial message if history exists
-                    
-                    chatHistory.forEach(msg => {
-                        const text = msg.parts?.[0]?.text || '';
-                        appendMessage(msg.role, text);
-                    });
-                }
-            } catch (e) {
-                console.error("Error restoring chat history:", e);
+        function saveApiKey() {
+            const input = document.getElementById('api-key-input').value.trim();
+            if (input) {
+                apiKey = input;
+                localStorage.setItem('gemini_api_key', apiKey);
+                checkApiKeyStatus();
+                toggleModal(false);
+                appendSystemMessage("API Key configured successfully.");
+            } else {
+                alert("Please enter a valid API key.");
             }
         }
 
-        function showNotification(text) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'bg-zinc-800 border border-zinc-700 text-gray-200 text-xs px-3 py-2 rounded-lg shadow-lg transition-opacity duration-300';
-            toast.innerText = text;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
+        function checkApiKeyStatus() {
+            const statusEl = document.getElementById('api-key-status');
+            const hintEl = document.getElementById('key-hint');
+            if (apiKey) {
+                statusEl.innerText = "API Key Active";
+                statusEl.className = "hidden sm:inline text-gray-300";
+                hintEl.innerText = "Status: Online";
+                hintEl.className = "text-gray-500 text-xs";
+            } else {
+                statusEl.innerText = "Set API Key";
+                statusEl.className = "hidden sm:inline text-amber-500";
+                hintEl.innerText = "API Key required";
+                hintEl.className = "text-amber-500 text-xs";
+            }
         }
 
         function handleKeyDown(event) {
@@ -194,22 +222,30 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
 
         function clearChat() {
             if (isGenerating) return;
-            chatHistory = [];
-            localStorage.removeItem(STORAGE_KEY);
-            
+            if (confirm("Clear conversation history?")) {
+                chatHistory = [];
+                const container = document.getElementById('chat-container');
+                container.innerHTML = `
+                    <div class="flex items-start space-x-4">
+                        <div class="w-8 h-8 rounded-full bg-emerald-600/20 border border-emerald-500/30 flex-shrink-0 flex items-center justify-center text-emerald-400 text-xs">
+                            <i class="fa-solid fa-user-astronaut"></i>
+                        </div>
+                        <div class="pt-1 text-sm sm:text-base text-gray-200 leading-relaxed max-w-2xl">
+                            <p class="font-medium text-gray-100 mb-1">Mission logs reset</p>
+                            <p>Ready when you are. What astrophysical concept or high-pressure water rocket design are we tinkering with next?</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function appendSystemMessage(text) {
             const container = document.getElementById('chat-container');
-            container.innerHTML = `
-                <div class="flex items-start space-x-4">
-                    <div class="w-8 h-8 rounded-full bg-emerald-600/20 border border-emerald-500/30 flex-shrink-0 flex items-center justify-center text-emerald-400 text-xs">
-                        <i class="fa-solid fa-user-astronaut"></i>
-                    </div>
-                    <div class="pt-1 text-sm sm:text-base text-gray-200 leading-relaxed max-w-2xl">
-                        <p class="font-medium text-gray-100 mb-1">Mission logs reset</p>
-                        <p>Ready when you are. What astrophysical concept or high-pressure water rocket design are we tinkering with next?</p>
-                    </div>
-                </div>
-            `;
-            showNotification("Conversation cleared.");
+            const msgDiv = document.createElement('div');
+            msgDiv.className = "flex justify-center my-2";
+            msgDiv.innerHTML = `<span class="bg-chat-surface border border-chat-border text-gray-400 text-xs px-3 py-1 rounded-full font-mono">${text}</span>`;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
         }
 
         function appendMessage(role, text) {
@@ -242,7 +278,8 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
             return messageRow;
         }
 
-        function animateTextWordByWord(element, fullText, speed = 30) {
+        // Smooth word-by-word streaming animation
+        function animateTextWordByWord(element, fullText, speed = 35) {
             return new Promise((resolve) => {
                 const words = fullText.split(' ');
                 let currentWordIndex = 0;
@@ -283,12 +320,16 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
             const text = inputEl.value.trim();
             if (!text) return;
 
+            if (!apiKey) {
+                toggleModal(true);
+                return;
+            }
+
             inputEl.value = '';
             inputEl.style.height = 'auto';
 
             appendMessage('user', text);
             chatHistory.push({ role: 'user', parts: [{ text: text }] });
-            saveChatHistory();
 
             const typingEl = document.getElementById('typing-indicator');
             typingEl.classList.remove('hidden');
@@ -307,20 +348,18 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
                 
                 await animateTextWordByWord(bubbleElement, responseText, 30);
                 chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
-                saveChatHistory();
             } catch (error) {
                 typingEl.classList.add('hidden');
                 console.error("API Error:", error);
-                appendMessage('model', `Telemetry Error: ${error.message}. Please verify the embedded API Key in the application script.`);
+                appendMessage('model', `Houston, we have a glitch! Error connecting to Gemini API: ${error.message}. Please verify your API key configuration.`);
                 chatHistory.pop();
-                saveChatHistory();
             } finally {
                 isGenerating = false;
             }
         }
 
         async function callGeminiAPI(history) {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
             
             const payload = {
                 contents: history,
