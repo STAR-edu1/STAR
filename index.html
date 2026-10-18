@@ -94,14 +94,10 @@
         </div>
 
         <div class="flex items-center space-x-2">
-            <!-- API Key Configuration Button -->
-            <button id="config-btn" onclick="toggleModal(true)" class="flex items-center space-x-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-medium transition">
-                <i class="fa-solid fa-key text-violet-400"></i>
-                <span id="api-key-status" class="hidden sm:inline">API Key Config</span>
-            </button>
             <!-- Clear Chat Button -->
-            <button onclick="clearChat()" title="Clear Chat History" class="bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-gray-200 p-2 rounded-xl text-xs transition">
+            <button onclick="clearChat()" title="Clear Chat History" class="bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-gray-200 p-2 rounded-xl text-xs transition flex items-center gap-2 px-3">
                 <i class="fa-solid fa-trash-can"></i>
+                <span class="hidden sm:inline">Clear Chat</span>
             </button>
         </div>
     </header>
@@ -138,53 +134,30 @@
         </div>
         <div class="max-w-3xl mx-auto mt-2 flex items-center justify-between text-xs text-gray-500 px-2">
             <span>Press Enter to send</span>
-            <span id="key-hint" class="text-gray-500">API Key required</span>
+            <span class="text-xs text-gray-400">Powered by Groq Cloud</span>
         </div>
     </footer>
 
-    <!-- API Key Modal -->
-    <div id="api-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="glass border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="display font-semibold text-base text-gray-100 flex items-center gap-2">
-                    <i class="fa-solid fa-key text-violet-400"></i> API Key Configuration
-                </h3>
-                <button onclick="toggleModal(false)" class="text-gray-400 hover:text-gray-200 transition">
-                    <i class="fa-solid fa-xmark text-base"></i>
-                </button>
-            </div>
-            <p class="text-xs text-gray-400 leading-relaxed">
-                Enter your Gemini API key below. Your key is saved strictly in your browser's local storage and sent directly to Google.
-            </p>
-            <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">API Key</label>
-                <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-gray-100 focus:outline-none focus:border-violet-500/60">
-            </div>
-            <div class="flex justify-end space-x-2 pt-2">
-                <button onclick="toggleModal(false)" class="px-4 py-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-gray-300 transition border border-white/10">Cancel</button>
-                <button onclick="saveApiKey()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white shadow-lg shadow-indigo-500/20 transition">Save Key</button>
-            </div>
-        </div>
-    </div>
-
     <!-- JavaScript Application Logic -->
     <script>
-        // Updated Prompt: Short, direct answers by default unless deep dive requested
+        // HARDCODED GROQ API KEY - Embedded for immediate deployment
+        const GROQ_API_KEY = "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";
+        const GROQ_MODELS = [
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "openai/gpt-oss-120b",
+            "openai/gpt-oss-20b"
+        ];
+
         const SYSTEM_INSTRUCTION = `You are S.T.A.R, an AI hybrid between a brilliant professional astrophysicist and an obsessive DIY water rocket builder.
 Keep your answers extremely straightforward, short, and to the point by default.
-ONLY provide detailed explanations, deep dives, step-by-step math, or multi-paragraph responses if the user explicitly asks you to "deep dive", "explain in detail", "elaborate", or asks for a full breakdown. you are talking on the behalf of a group of 5 peoople: Samir Alqedra, Ahmed Abdeldayem, Tolin Halaika, Mariam Hilis, Amal Mohamed. his group is working on building a high-performing water rocket
-Maintain a energetic, witty, space-enthusiast tone without using emojis in your responses.`;
+ONLY provide detailed explanations, deep dives, step-by-step math, or multi-paragraph responses if the user explicitly asks you to "deep dive", "explain in detail", "elaborate", or asks for a full breakdown. You are talking on behalf of a group of 5 people: Samir Alqedra, Ahmed Abdeldayem, Tolin Halaika, Mariam Hilis, Amal Mohamed. This group is working on building a high-performing water rocket.
+Maintain an energetic, witty, space-enthusiast tone without using emojis in your responses.`;
 
         let chatHistory = [];
-        let apiKey = localStorage.getItem('gemini_api_key') || '';
         let isGenerating = false;
 
         window.onload = function() {
-            checkApiKeyStatus();
-            if (!apiKey) {
-                setTimeout(() => toggleModal(true), 500);
-            }
-            
             const textarea = document.getElementById('user-input');
             textarea.addEventListener('input', function() {
                 this.style.height = 'auto';
@@ -192,7 +165,34 @@ Maintain a energetic, witty, space-enthusiast tone without using emojis in your 
             });
 
             drawStars();
+            loadChatHistory();
         };
+
+        // Load saved chat history from LocalStorage
+        function loadChatHistory() {
+            const savedHistory = localStorage.getItem('star_chat_history');
+            if (savedHistory) {
+                try {
+                    chatHistory = JSON.parse(savedHistory);
+                    if (chatHistory.length > 0) {
+                        const container = document.getElementById('chat-container');
+                        container.innerHTML = ''; // Clear default initial greeting
+                        chatHistory.forEach(msg => {
+                            appendMessageToDOM(msg.role, msg.content);
+                        });
+                        container.scrollTop = container.scrollHeight;
+                    }
+                } catch (e) {
+                    console.error("Failed to parse saved chat history", e);
+                    chatHistory = [];
+                }
+            }
+        }
+
+        // Save current chat history array to LocalStorage
+        function saveChatHistory() {
+            localStorage.setItem('star_chat_history', JSON.stringify(chatHistory));
+        }
 
         function drawStars() {
             const canvas = document.getElementById('stars');
@@ -222,45 +222,6 @@ Maintain a energetic, witty, space-enthusiast tone without using emojis in your 
             if (!isGenerating) drawStars();
         });
 
-        function toggleModal(show) {
-            const modal = document.getElementById('api-modal');
-            if (show) {
-                document.getElementById('api-key-input').value = apiKey;
-                modal.classList.remove('hidden');
-            } else {
-                modal.classList.add('hidden');
-            }
-        }
-
-        function saveApiKey() {
-            const input = document.getElementById('api-key-input').value.trim();
-            if (input) {
-                apiKey = input;
-                localStorage.setItem('gemini_api_key', apiKey);
-                checkApiKeyStatus();
-                toggleModal(false);
-                appendSystemMessage("API Key configured successfully.");
-            } else {
-                alert("Please enter a valid API key.");
-            }
-        }
-
-        function checkApiKeyStatus() {
-            const statusEl = document.getElementById('api-key-status');
-            const hintEl = document.getElementById('key-hint');
-            if (apiKey) {
-                statusEl.innerText = "API Key Active";
-                statusEl.className = "hidden sm:inline text-gray-300";
-                hintEl.innerText = "Status: Online";
-                hintEl.className = "text-gray-500 text-xs";
-            } else {
-                statusEl.innerText = "Set API Key";
-                statusEl.className = "hidden sm:inline text-amber-500";
-                hintEl.innerText = "API Key required";
-                hintEl.className = "text-amber-500 text-xs";
-            }
-        }
-
         function handleKeyDown(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
@@ -270,30 +231,20 @@ Maintain a energetic, witty, space-enthusiast tone without using emojis in your 
 
         function clearChat() {
             if (isGenerating) return;
-            if (confirm("Clear conversation history?")) {
-                chatHistory = [];
-                const container = document.getElementById('chat-container');
-                container.innerHTML = `
-                    <div class="flex items-start">
-                        <div class="pt-1 text-sm sm:text-base text-gray-200 leading-relaxed max-w-2xl">
-                            <p class="display font-medium text-gray-100 mb-1">Mission logs reset</p>
-                            <p>Ready when you are. What astrophysical concept or high-pressure water rocket design are we tinkering with next?</p>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function appendSystemMessage(text) {
+            chatHistory = [];
+            localStorage.removeItem('star_chat_history');
             const container = document.getElementById('chat-container');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = "flex justify-center my-2";
-            msgDiv.innerHTML = `<span class="glass border border-white/10 text-gray-400 text-xs px-3 py-1 rounded-full font-mono">${text}</span>`;
-            container.appendChild(msgDiv);
-            container.scrollTop = container.scrollHeight;
+            container.innerHTML = `
+                <div class="flex items-start">
+                    <div class="pt-1 text-sm sm:text-base text-gray-200 leading-relaxed max-w-2xl">
+                        <p class="display font-medium text-gray-100 mb-1">Mission logs reset</p>
+                        <p>Ready when you are. What astrophysical concept or high-pressure water rocket design are we tinkering with next?</p>
+                    </div>
+                </div>
+            `;
         }
 
-        function appendMessage(role, text) {
+        function appendMessageToDOM(role, text) {
             const container = document.getElementById('chat-container');
             const isUser = role === 'user';
             
@@ -309,13 +260,16 @@ Maintain a energetic, witty, space-enthusiast tone without using emojis in your 
                 const bubble = document.createElement('div');
                 bubble.className = 'pt-1 text-sm sm:text-base text-gray-200 leading-relaxed max-w-2xl';
                 bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
-
                 messageRow.appendChild(bubble);
             }
 
             container.appendChild(messageRow);
             container.scrollTop = container.scrollHeight;
             return messageRow;
+        }
+
+        function appendMessage(role, text) {
+            return appendMessageToDOM(role, text);
         }
 
         // Smooth word-by-word streaming animation
@@ -360,16 +314,12 @@ Maintain a energetic, witty, space-enthusiast tone without using emojis in your 
             const text = inputEl.value.trim();
             if (!text) return;
 
-            if (!apiKey) {
-                toggleModal(true);
-                return;
-            }
-
             inputEl.value = '';
             inputEl.style.height = 'auto';
 
             appendMessage('user', text);
-            chatHistory.push({ role: 'user', parts: [{ text: text }] });
+            chatHistory.push({ role: 'user', content: text });
+            saveChatHistory();
 
             const typingEl = document.getElementById('typing-indicator');
             typingEl.classList.remove('hidden');
@@ -379,43 +329,54 @@ Maintain a energetic, witty, space-enthusiast tone without using emojis in your 
             isGenerating = true;
 
             try {
-                const responseText = await callGeminiAPI(chatHistory);
+                const responseText = await callGroqAPI(chatHistory);
                 typingEl.classList.add('hidden');
                 
                 // Create empty AI message row & animate text insertion
-                const messageRow = appendMessage('model', '');
+                const messageRow = appendMessage('assistant', '');
                 const bubbleElement = messageRow.querySelector('.max-w-2xl');
                 
-                await animateTextWordByWord(bubbleElement, responseText, 30);
-                chatHistory.push({ role: 'model', parts: [{ text: responseText }] });
+                await animateTextWordByWord(bubbleElement, responseText, 25);
+                chatHistory.push({ role: 'assistant', content: responseText });
+                saveChatHistory();
             } catch (error) {
                 typingEl.classList.add('hidden');
                 console.error("API Error:", error);
-                appendMessage('model', `Houston, we have a glitch! Error connecting to Gemini API: ${error.message}. Please verify your API key configuration.`);
+                appendMessage('assistant', `Houston, we have a glitch! Error connecting to Groq API: ${error.message}. Please verify the Groq API key configured in the script.`);
                 chatHistory.pop();
+                saveChatHistory();
             } finally {
                 isGenerating = false;
             }
         }
 
-        async function callGeminiAPI(history) {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        async function callGroqAPI(history) {
+            const apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
             
-            const payload = {
-                contents: history,
-                systemInstruction: {
-                    parts: [{ text: SYSTEM_INSTRUCTION }]
-                }
-            };
+            // OpenAI/Groq compatible message list
+            const messages = [
+                { role: 'system', content: SYSTEM_INSTRUCTION },
+                ...history
+            ];
 
-            let retries = 3;
-            let delay = 1000;
+            let lastError = null;
 
-            for (let i = 0; i < retries; i++) {
+            // Iterate over fallback models in case specific ones are inactive or unaccessible
+            for (const model of GROQ_MODELS) {
+                const payload = {
+                    model: model,
+                    messages: messages,
+                    temperature: 0.7,
+                    max_tokens: 1024
+                };
+
                 try {
                     const response = await fetch(apiUrl, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${GROQ_API_KEY}`
+                        },
                         body: JSON.stringify(payload)
                     });
 
@@ -425,18 +386,20 @@ Maintain a energetic, witty, space-enthusiast tone without using emojis in your 
                     }
 
                     const result = await response.json();
-                    const candidate = result.candidates?.[0];
-                    if (candidate && candidate.content?.parts?.[0]?.text) {
-                        return candidate.content.parts[0].text;
+                    const choice = result.choices?.[0];
+                    if (choice && choice.message?.content) {
+                        return choice.message.content;
                     } else {
-                        throw new Error("Invalid response structure received from Gemini API.");
+                        throw new Error("Invalid response structure received from Groq API.");
                     }
                 } catch (err) {
-                    if (i === retries - 1) throw err;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    delay *= 2;
+                    console.warn(`Attempt with model '${model}' failed:`, err.message);
+                    lastError = err;
+                    // Continue trying next available model in candidate list
                 }
             }
+
+            throw lastError || new Error("Failed to reach any available Groq model.");
         }
     </script>
 </body>
