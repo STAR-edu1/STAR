@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S.T.A.R</title>
+    <title>S.T.A.R Rocketry Platform</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Space Grotesk & Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome for icons -->
+    <!-- Fonts: Space Grotesk & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -20,133 +21,353 @@
                         display: ['Space Grotesk', 'sans-serif'],
                     },
                     colors: {
-                        chat: {
-                            bg: '#07070f',         /* Deep cosmic background base */
-                            sidebar: '#0d0d18',    /* Dark panel backdrop */
-                            surface: 'rgba(255, 255, 255, 0.04)', /* Glass surface card background */
-                            hover: 'rgba(255, 255, 255, 0.08)',   /* Surface hover state */
-                            border: 'rgba(255, 255, 255, 0.11)',  /* Neon-tinted subtle border */
-                            userMsg: 'rgba(99, 102, 241, 0.22)'   /* Indigo cosmic bubble */
+                        cosmic: {
+                            bg: '#06060e',
+                            card: 'rgba(255, 255, 255, 0.03)',
+                            border: 'rgba(255, 255, 255, 0.1)',
+                            hover: 'rgba(255, 255, 255, 0.07)',
+                            accent: '#6366f1',
+                            cyan: '#06b6d4',
+                            violet: '#8b5cf6'
                         }
                     }
                 }
             }
         }
     </script>
+    
     <style>
-        :root {
-            --ink: #07070f;
-            --panel: rgba(255, 255, 255, 0.04);
-            --line: rgba(255, 255, 255, 0.11);
-            --text: #e9e9f5;
-            --muted: #8b8ba7;
-            --violet: #8b5cf6;
-            --indigo: #6366f1;
-            --cyan: #67e8f9;
-        }
         body {
             font-family: 'Inter', sans-serif;
-            background:
-                radial-gradient(900px 500px at 15% -10%, rgba(99, 102, 241, 0.22), transparent 60%),
-                radial-gradient(800px 500px at 100% 0%, rgba(139, 92, 246, 0.18), transparent 60%),
-                radial-gradient(700px 500px at 50% 120%, rgba(103, 232, 249, 0.10), transparent 60%),
-                var(--ink);
-            color: #ececec;
+            background: 
+                radial-gradient(1000px 600px at 15% -10%, rgba(99, 102, 241, 0.18), transparent 60%),
+                radial-gradient(900px 500px at 90% 10%, rgba(139, 92, 246, 0.15), transparent 60%),
+                radial-gradient(800px 600px at 50% 110%, rgba(6, 182, 212, 0.12), transparent 60%),
+                #06060e;
+            color: #f1f5f9;
         }
-        .display { font-family: 'Space Grotesk', sans-serif; }
-        #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-        .glass {
-            background: var(--panel);
-            border: 1px solid var(--line);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        #starfield { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        
+        .glass-panel {
+            background: rgba(18, 18, 30, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
+        
+        .glass-input {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.2s ease;
         }
-        ::-webkit-scrollbar-track {
-            background: transparent;
+        .glass-input:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, 0.6);
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
         }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.28);
-        }
-        :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.28); }
     </style>
 </head>
-<body class="h-full flex flex-col bg-chat-bg text-gray-100 relative overflow-hidden">
-    <!-- Starfield canvas layer -->
-    <canvas id="stars"></canvas>
+<body class="h-full flex flex-col bg-cosmic-bg text-slate-100 relative overflow-hidden select-none">
+    
+    <!-- Canvas background layer -->
+    <canvas id="starfield"></canvas>
 
-    <!-- Header -->
-    <header class="bg-black/30 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between z-10">
+    <!-- App Header -->
+    <header class="glass-panel border-b border-white/10 px-4 py-3 flex items-center justify-between z-20 shrink-0">
         <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 shrink-0">
+                <i class="fa-solid fa-rocket text-sm"></i>
+            </div>
             <div>
-                <h1 class="display font-semibold text-base text-gray-100 flex items-center gap-2">
+                <h1 class="font-display font-bold text-lg text-white tracking-wide flex items-center gap-2">
                     S.T.A.R
                 </h1>
-                <p class="text-[10px] text-gray-400 font-medium tracking-wide">Supervised Trajectory and Aerodynamics Research</p>
+                <p class="text-[10px] text-indigo-300/70 font-medium tracking-wider">Supervised Trajectory and Aerodynamics Research</p>
             </div>
         </div>
 
-        <div class="flex items-center space-x-2">
-            <!-- Clear Chat Button -->
-            <button onclick="clearChat()" title="Clear Chat History" class="bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-gray-200 p-2 rounded-xl text-xs transition flex items-center gap-2 px-3">
+        <!-- Navigation Icons & Clear Chat -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+            <!-- Navigation Switcher Buttons -->
+            <div class="flex items-center bg-white/5 p-1 rounded-xl border border-white/10">
+                <button onclick="switchTab('chat')" id="nav-chat-btn" title="AI Research Assistant" 
+                        class="px-3 py-1.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-center text-white bg-indigo-600/60 border border-indigo-400/30 shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-comments text-base"></i>
+                </button>
+                <button onclick="switchTab('engineering')" id="nav-eng-btn" title="Flight Engineering & Team" 
+                        class="px-3 py-1.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5">
+                    <i class="fa-solid fa-rocket text-base"></i>
+                </button>
+            </div>
+
+            <!-- Clear Chat Button (Visible only on Chat page) -->
+            <button id="clear-chat-btn" onclick="clearChat()" title="Clear Chat History" class="bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-slate-100 p-2 rounded-xl text-xs transition flex items-center gap-1.5 px-3">
                 <i class="fa-solid fa-trash-can"></i>
                 <span class="hidden sm:inline">Clear Chat</span>
             </button>
         </div>
     </header>
 
-    <!-- Main Chat Area -->
-    <main class="flex-1 overflow-y-auto p-4 sm:p-6 max-w-3xl w-full mx-auto flex flex-col space-y-6 z-10" id="chat-container">
-        <!-- Initial message -->
-        <div class="flex items-start">
-            <div class="pt-1 text-sm sm:text-base text-gray-200 leading-relaxed max-w-2xl">
-                <p class="display font-medium text-gray-100 mb-1">S.T.A.R</p>
-                <p>Greetings, Engineers. Ask me anything about astrophysics or water rocketry—I'll keep it concise unless you ask for a deep dive.</p>
+    <!-- Main Content Container -->
+    <main class="flex-1 relative overflow-hidden flex flex-col z-10">
+        <!-- PAGE 1: AI RESEARCH CHAT -->
+        <section id="page-chat" class="flex-1 flex flex-col h-full overflow-hidden">
+            <!-- Chat Container Scroll Area -->
+            <div id="chat-container" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 max-w-4xl w-full mx-auto">
+                <div class="flex items-start">
+                    <div class="pt-1 text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl">
+                        <p class="font-display font-medium text-slate-100 mb-1">S.T.A.R</p>
+                        <p>Welcome! I'm S.T.A.R Intelligence, representing Samir Alqedra, Ahmed Abdeldayem, Tolin Halaika, Mariam Hilis, and Amal Mohamed. Ask me anything about water rocket dynamics, fluid thrust, fin stability, or aerodynamics!</p>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- Typing Indicator -->
+            <div id="typing-indicator" class="hidden max-w-4xl w-full mx-auto px-4 sm:px-6 pb-2 text-xs text-indigo-400 font-mono flex items-center gap-2">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> S.T.A.R is thinking...
+            </div>
+
+            <!-- Chat Input Footer -->
+            <footer class="p-4 shrink-0">
+                <!-- Recommended Quick Prompt Messages -->
+                <div class="max-w-3xl mx-auto mb-2.5 flex flex-wrap gap-2 items-center justify-start">
+                    <button onclick="useQuickPrompt('What is the optimal water-to-air volume ratio for max altitude?')" 
+                            class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-indigo-600/20 border border-white/10 hover:border-indigo-400/40 text-xs text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-droplet text-cyan-400 text-[10px]"></i>
+                        <span>Optimal Water Ratio</span>
+                    </button>
+                    <button onclick="useQuickPrompt('How do nozzle size and pressure impact initial thrust dynamics?')" 
+                            class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-indigo-600/20 border border-white/10 hover:border-indigo-400/40 text-xs text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-gauge-high text-amber-400 text-[10px]"></i>
+                        <span>Thrust & Nozzle Size</span>
+                    </button>
+                    <button onclick="useQuickPrompt('Explain center of pressure vs center of gravity for water rocket stability.')" 
+                            class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-indigo-600/20 border border-white/10 hover:border-indigo-400/40 text-xs text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-compass text-violet-400 text-[10px]"></i>
+                        <span>Stability & Fin Design</span>
+                    </button>
+                </div>
+
+                <div class="max-w-3xl mx-auto glass-panel border border-white/10 rounded-2xl p-2 focus-within:border-indigo-500/50 transition-all flex items-end">
+                    <textarea id="user-input" rows="1" placeholder="Ask S.T.A.R about aerodynamics, water rocketry, or trajectory..." class="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-500 focus:outline-none resize-none max-h-32 px-3 py-2" onkeydown="handleKeyDown(event)"></textarea>
+                    <button id="send-btn" onclick="sendMessage()" class="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer ml-2 shadow-lg shadow-indigo-500/25 shrink-0">
+                        <i class="fa-solid fa-arrow-up text-xs"></i>
+                    </button>
+                </div>
+                <div class="max-w-3xl mx-auto mt-2 flex items-center justify-between text-[11px] text-slate-500 px-2">
+                    <span>Press <kbd class="px-1 py-0.5 bg-white/10 rounded text-slate-400">Enter</kbd> to send</span>
+                    <span class="text-indigo-300/50 font-mono">S.T.A.R Intelligence Core</span>
+                </div>
+            </footer>
+        </section>
+
+        <!-- PAGE 2: FLIGHT ENGINEERING & TEAM PAGE -->
+        <section id="page-engineering" class="hidden flex-1 overflow-y-auto p-4 sm:p-6 space-y-8">
+            
+            <!-- SECTION 1: WATER ROCKET LAUNCH SIMULATOR -->
+            <div class="glass-panel rounded-3xl p-6 border border-white/10 max-w-5xl mx-auto shadow-2xl">
+                <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                    <div>
+                        <h2 class="font-display font-bold text-xl text-white flex items-center gap-2">
+                            <i class="fa-solid fa-rocket text-indigo-400"></i> Water Rocket Flight Simulator
+                        </h2>
+                        <p class="text-xs text-slate-400">Input parameter values to calculate trajectory dynamics and launch the virtual rocket</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Rocket Input Form Controls -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <h3 class="text-xs font-semibold text-indigo-300 tracking-wider uppercase">Rocket Specifications</h3>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">Pressure (PSI)</label>
+                                <input type="number" id="sim-psi" value="60" min="20" max="120" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white" oninput="updateSimCalculations()">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">Water Fraction (%)</label>
+                                <input type="number" id="sim-water" value="33" min="10" max="70" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white" oninput="updateSimCalculations()">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">Bottle Vol (Liters)</label>
+                                <input type="number" id="sim-vol" value="2.0" step="0.1" min="0.5" max="5.0" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white" oninput="updateSimCalculations()">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">Empty Mass (g)</label>
+                                <input type="number" id="sim-mass" value="180" min="50" max="800" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white" oninput="updateSimCalculations()">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">Nozzle Dia (mm)</label>
+                                <input type="number" id="sim-nozzle" value="21" min="8" max="40" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white" oninput="updateSimCalculations()">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-400 mb-1">Drag Coeff (Cd)</label>
+                                <input type="number" id="sim-cd" value="0.35" step="0.05" min="0.1" max="1.0" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white" oninput="updateSimCalculations()">
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+                                <span>Launch Angle</span>
+                                <span id="angle-val" class="text-indigo-300 font-mono">75°</span>
+                            </div>
+                            <input type="range" id="sim-angle" min="30" max="90" value="75" class="w-full accent-indigo-500 cursor-pointer" oninput="document.getElementById('angle-val').textContent = this.value + '°'; updateSimCalculations();">
+                        </div>
+
+                        <!-- Computed Dynamics Summary Card -->
+                        <div class="bg-black/40 border border-white/10 rounded-2xl p-4 space-y-2 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Estimated Apogee:</span>
+                                <span id="calc-apogee" class="font-mono text-emerald-400 font-semibold">0 m</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Estimated Landing Range:</span>
+                                <span id="calc-range" class="font-mono text-cyan-400 font-semibold">0 m</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Peak Thrust:</span>
+                                <span id="calc-thrust" class="font-mono text-amber-400 font-semibold">0 N</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Static Stability Margin:</span>
+                                <span id="calc-stability" class="font-mono text-indigo-300 font-semibold">1.8 Calibers</span>
+                            </div>
+                        </div>
+
+                        <!-- LAUNCH BUTTON -->
+                        <button onclick="startLaunchAnimation()" id="launch-btn" class="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-indigo-600 to-violet-600 hover:from-emerald-400 hover:to-violet-500 text-white font-display font-bold tracking-wider text-sm shadow-xl shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 group cursor-pointer active:scale-[0.98]">
+                            <i class="fa-solid fa-rocket group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform"></i>
+                            LAUNCH ROCKET
+                        </button>
+                    </div>
+
+                    <!-- Canvas & Telemetry Display -->
+                    <div class="lg:col-span-7 flex flex-col space-y-4">
+                        <div class="relative w-full h-96 bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950/80 rounded-2xl border border-white/10 overflow-hidden flex flex-col shadow-inner">
+                            <canvas id="sim-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+                            
+                            <!-- Telemetry HUD Overlay -->
+                            <div class="absolute top-3 left-3 bg-black/70 backdrop-blur-md border border-indigo-500/30 rounded-xl p-3 text-[11px] font-mono space-y-1.5 text-slate-300 shadow-xl min-w-[140px]">
+                                <div class="text-[10px] text-indigo-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                                    <span>Telemetry HUD</span>
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                </div>
+                                <div class="flex justify-between gap-3">
+                                    <span class="text-slate-400">Altitude:</span>
+                                    <span class="text-white font-bold"><span id="hud-alt">0.0</span> m</span>
+                                </div>
+                                <div class="flex justify-between gap-3">
+                                    <span class="text-slate-400">Distance:</span>
+                                    <span class="text-white font-bold"><span id="hud-dist">0.0</span> m</span>
+                                </div>
+                                <div class="flex justify-between gap-3">
+                                    <span class="text-slate-400">Speed:</span>
+                                    <span class="text-cyan-300 font-bold"><span id="hud-vel">0.0</span> m/s</span>
+                                </div>
+                                <div class="flex justify-between gap-3 border-t border-white/10 pt-1 mt-1">
+                                    <span class="text-slate-400">Status:</span>
+                                    <span id="hud-status" class="text-emerald-400 font-sans font-semibold">READY</span>
+                                </div>
+                            </div>
+
+                            <!-- Launch Control Visual Legend -->
+                            <div class="absolute bottom-3 right-3 hidden sm:flex items-center gap-3 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-[10px] text-slate-300">
+                                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-cyan-400"></span> Water Spray</span>
+                                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-400"></span> Trajectory</span>
+                                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Apogee</span>
+                            </div>
+                        </div>
+
+                        <!-- Simulation Controls -->
+                        <div class="flex items-center justify-between text-xs text-slate-400 px-1">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-info text-indigo-400"></i> Trajectory is calculated using hydrodynamics, drag, and air propulsion physics.</span>
+                            <button onclick="resetSimulationCanvas()" class="hover:text-indigo-300 transition underline cursor-pointer flex items-center gap-1">
+                                <i class="fa-solid fa-rotate-left text-[10px]"></i> Reset View
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: EQUAL TEAM ROSTER -->
+            <div class="max-w-5xl mx-auto space-y-4">
+                <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                    <div>
+                        <h2 class="font-display font-bold text-xl text-white flex items-center gap-2">
+                            <i class="fa-solid fa-users text-violet-400"></i> S.T.A.R Engineering Team
+                        </h2>
+                        <p class="text-xs text-slate-400">The core team collaborating on water rocket design and research</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <!-- Samir Alqedra -->
+                    <div class="glass-panel p-4 rounded-2xl border border-white/10 hover:border-indigo-500/40 transition-all flex flex-col items-center text-center group">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center font-display font-bold text-white text-base mb-3 group-hover:scale-105 transition-transform shadow-lg shadow-indigo-500/20">
+                            SA
+                        </div>
+                        <h3 class="font-display font-semibold text-sm text-white">Samir Alqedra</h3>
+                        <span class="text-[11px] text-slate-400 mt-0.5">Team Member</span>
+                    </div>
+
+                    <!-- Ahmed Abdeldayem -->
+                    <div class="glass-panel p-4 rounded-2xl border border-white/10 hover:border-indigo-500/40 transition-all flex flex-col items-center text-center group">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-violet-500 to-cyan-500 flex items-center justify-center font-display font-bold text-white text-base mb-3 group-hover:scale-105 transition-transform shadow-lg shadow-violet-500/20">
+                            AA
+                        </div>
+                        <h3 class="font-display font-semibold text-sm text-white">Ahmed Abdeldayem</h3>
+                        <span class="text-[11px] text-slate-400 mt-0.5">Team Member</span>
+                    </div>
+
+                    <!-- Tolin Halaika -->
+                    <div class="glass-panel p-4 rounded-2xl border border-white/10 hover:border-indigo-500/40 transition-all flex flex-col items-center text-center group">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-emerald-500 flex items-center justify-center font-display font-bold text-white text-base mb-3 group-hover:scale-105 transition-transform shadow-lg shadow-cyan-500/20">
+                            TH
+                        </div>
+                        <h3 class="font-display font-semibold text-sm text-white">Tolin Halaika</h3>
+                        <span class="text-[11px] text-slate-400 mt-0.5">Team Member</span>
+                    </div>
+
+                    <!-- Mariam Hilis -->
+                    <div class="glass-panel p-4 rounded-2xl border border-white/10 hover:border-indigo-500/40 transition-all flex flex-col items-center text-center group">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center font-display font-bold text-white text-base mb-3 group-hover:scale-105 transition-transform shadow-lg shadow-pink-500/20">
+                            MH
+                        </div>
+                        <h3 class="font-display font-semibold text-sm text-white">Mariam Hilis</h3>
+                        <span class="text-[11px] text-slate-400 mt-0.5">Team Member</span>
+                    </div>
+
+                    <!-- Amal Mohamed -->
+                    <div class="glass-panel p-4 rounded-2xl border border-white/10 hover:border-indigo-500/40 transition-all flex flex-col items-center text-center group">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-violet-500 flex items-center justify-center font-display font-bold text-white text-base mb-3 group-hover:scale-105 transition-transform shadow-lg shadow-amber-500/20">
+                            AM
+                        </div>
+                        <h3 class="font-display font-semibold text-sm text-white">Amal Mohamed</h3>
+                        <span class="text-[11px] text-slate-400 mt-0.5">Team Member</span>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <!-- Typing Indicator (Hidden by default) -->
-    <div id="typing-indicator" class="hidden max-w-3xl w-full mx-auto px-4 sm:px-6 mb-4 z-10">
-        <div class="flex items-start">
-            <div class="pt-2 flex items-center space-x-1.5">
-                <div class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></div>
-                <div class="w-2 h-2 rounded-full bg-violet-400 animate-pulse" style="animation-delay: 0.2s;"></div>
-                <div class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" style="animation-delay: 0.4s;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Input Footer -->
-    <footer class="p-4 z-10">
-        <div class="max-w-3xl mx-auto flex items-end glass border border-white/10 rounded-2xl px-3 py-2 focus-within:border-violet-500/50 transition-colors">
-            <textarea id="user-input" rows="1" placeholder="Message S.T.A.R..." class="flex-1 bg-transparent text-sm text-gray-100 placeholder-gray-500 focus:outline-none resize-none max-h-32 px-2 py-1.5" onkeydown="handleKeyDown(event)"></textarea>
-            <button id="send-btn" onclick="sendMessage()" class="bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-semibold p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer ml-2 shadow-lg shadow-indigo-500/20">
-                <i class="fa-solid fa-arrow-up text-xs"></i>
-            </button>
-        </div>
-        <div class="max-w-3xl mx-auto mt-2 flex items-center justify-between text-xs text-gray-500 px-2">
-            <span>Press Enter to send</span>
-            <span class="text-xs text-gray-400">Powered by Groq Cloud</span>
-        </div>
-    </footer>
-
-    <!-- JavaScript Application Logic -->
+    <!-- JavaScript Application Core -->
     <script>
-        // HARDCODED GROQ API KEY - Embedded for immediate deployment
-        const GROQ_API_KEY = "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";
+        // GROQ API CONFIGURATION
+        let GROQ_API_KEY = "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";
         const GROQ_MODELS = [
-            "llama-3.3-70b-versatile",
-            "llama-3.1-8b-instant",
             "openai/gpt-oss-120b",
-            "openai/gpt-oss-20b"
+            "openai/gpt-oss-20b",
+            "llama-3.3-70b-versatile",
+            "qwen/qwen3.8-27b"
         ];
 
         const SYSTEM_INSTRUCTION = `You are S.T.A.R, an AI hybrid between a brilliant professional astrophysicist and an obsessive DIY water rocket builder.
@@ -156,6 +377,37 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
 
         let chatHistory = [];
         let isGenerating = false;
+        let simAnimationId = null;
+
+        // Page Navigation
+        function switchTab(tab) {
+            const chatPage = document.getElementById('page-chat');
+            const engPage = document.getElementById('page-engineering');
+            const chatBtn = document.getElementById('nav-chat-btn');
+            const engBtn = document.getElementById('nav-eng-btn');
+            const clearChatBtn = document.getElementById('clear-chat-btn');
+
+            if (tab === 'chat') {
+                chatPage.classList.remove('hidden');
+                engPage.classList.add('hidden');
+                clearChatBtn.classList.remove('hidden');
+
+                chatBtn.className = "px-3 py-1.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-center text-white bg-indigo-600/60 border border-indigo-400/30 shadow-lg shadow-indigo-500/20";
+                engBtn.className = "px-3 py-1.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5";
+            } else {
+                chatPage.classList.add('hidden');
+                engPage.classList.remove('hidden');
+                clearChatBtn.classList.add('hidden');
+
+                engBtn.className = "px-3 py-1.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-center text-white bg-indigo-600/60 border border-indigo-400/30 shadow-lg shadow-indigo-500/20";
+                chatBtn.className = "px-3 py-1.5 rounded-lg text-sm transition-all duration-200 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5";
+
+                setTimeout(() => {
+                    initCanvas();
+                    updateSimCalculations();
+                }, 50);
+            }
+        }
 
         window.onload = function() {
             const textarea = document.getElementById('user-input');
@@ -166,44 +418,20 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
 
             drawStars();
             loadChatHistory();
+            initCanvas();
         };
 
-        // Load saved chat history from LocalStorage
-        function loadChatHistory() {
-            const savedHistory = localStorage.getItem('star_chat_history');
-            if (savedHistory) {
-                try {
-                    chatHistory = JSON.parse(savedHistory);
-                    if (chatHistory.length > 0) {
-                        const container = document.getElementById('chat-container');
-                        container.innerHTML = ''; // Clear default initial greeting
-                        chatHistory.forEach(msg => {
-                            appendMessageToDOM(msg.role, msg.content);
-                        });
-                        container.scrollTop = container.scrollHeight;
-                    }
-                } catch (e) {
-                    console.error("Failed to parse saved chat history", e);
-                    chatHistory = [];
-                }
-            }
-        }
-
-        // Save current chat history array to LocalStorage
-        function saveChatHistory() {
-            localStorage.setItem('star_chat_history', JSON.stringify(chatHistory));
-        }
-
+        // --- STARFIELD CANVAS ---
         function drawStars() {
-            const canvas = document.getElementById('stars');
+            const canvas = document.getElementById('starfield');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
             const w = canvas.width = window.innerWidth;
             const h = canvas.height = window.innerHeight;
             
             ctx.clearRect(0, 0, w, h);
+            const count = Math.floor((w * h) / 7000);
             
-            const count = Math.floor((w * h) / 8000);
             for (let i = 0; i < count; i++) {
                 const x = Math.random() * w;
                 const y = Math.random() * h;
@@ -220,13 +448,33 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
 
         window.addEventListener('resize', () => {
             if (!isGenerating) drawStars();
+            initCanvas();
+            updateSimCalculations();
         });
 
-        function handleKeyDown(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
+        // --- CHAT SYSTEM LOGIC ---
+        function loadChatHistory() {
+            const savedHistory = localStorage.getItem('star_chat_history');
+            if (savedHistory) {
+                try {
+                    chatHistory = JSON.parse(savedHistory);
+                    if (chatHistory.length > 0) {
+                        const container = document.getElementById('chat-container');
+                        container.innerHTML = '';
+                        chatHistory.forEach(msg => {
+                            appendMessageToDOM(msg.role, msg.content);
+                        });
+                        container.scrollTop = container.scrollHeight;
+                    }
+                } catch (e) {
+                    console.error("Failed to parse chat history", e);
+                    chatHistory = [];
+                }
             }
+        }
+
+        function saveChatHistory() {
+            localStorage.setItem('star_chat_history', JSON.stringify(chatHistory));
         }
 
         function clearChat() {
@@ -236,12 +484,26 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
             const container = document.getElementById('chat-container');
             container.innerHTML = `
                 <div class="flex items-start">
-                    <div class="pt-1 text-sm sm:text-base text-gray-200 leading-relaxed max-w-2xl">
-                        <p class="display font-medium text-gray-100 mb-1">Mission logs reset</p>
+                    <div class="pt-1 text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl">
+                        <p class="font-display font-medium text-slate-100 mb-1">Mission logs reset</p>
                         <p>Ready when you are. What astrophysical concept or high-pressure water rocket design are we tinkering with next?</p>
                     </div>
                 </div>
             `;
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function useQuickPrompt(text) {
+            const inputEl = document.getElementById('user-input');
+            inputEl.value = text;
+            inputEl.focus();
+            sendMessage();
         }
 
         function appendMessageToDOM(role, text) {
@@ -253,13 +515,13 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
 
             if (isUser) {
                 const bubble = document.createElement('div');
-                bubble.className = 'bg-indigo-600/20 text-gray-100 rounded-2xl px-4 py-2.5 text-sm sm:text-base max-w-2xl leading-relaxed border border-indigo-500/30 backdrop-blur-sm';
+                bubble.className = 'bg-indigo-600/30 text-slate-100 rounded-2xl px-4 py-2.5 text-sm sm:text-base max-w-2xl leading-relaxed border border-indigo-400/30 backdrop-blur-sm shadow-md';
                 bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
                 messageRow.appendChild(bubble);
             } else {
                 const bubble = document.createElement('div');
-                bubble.className = 'pt-1 text-sm sm:text-base text-gray-200 leading-relaxed max-w-2xl';
-                bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+                bubble.className = 'pt-1 text-sm sm:text-base text-slate-200 leading-relaxed max-w-2xl';
+                bubble.innerHTML = `<p class="font-display font-medium text-slate-100 mb-1">S.T.A.R</p><div class="msg-content">${escapeHtml(text).replace(/\n/g, '<br>')}</div>`;
                 messageRow.appendChild(bubble);
             }
 
@@ -268,12 +530,7 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
             return messageRow;
         }
 
-        function appendMessage(role, text) {
-            return appendMessageToDOM(role, text);
-        }
-
-        // Smooth word-by-word streaming animation
-        function animateTextWordByWord(element, fullText, speed = 35) {
+        function animateTextWordByWord(element, fullText, speed = 25) {
             return new Promise((resolve) => {
                 const words = fullText.split(' ');
                 let currentWordIndex = 0;
@@ -309,7 +566,7 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
 
         async function sendMessage() {
             if (isGenerating) return;
-            
+
             const inputEl = document.getElementById('user-input');
             const text = inputEl.value.trim();
             if (!text) return;
@@ -317,7 +574,7 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
             inputEl.value = '';
             inputEl.style.height = 'auto';
 
-            appendMessage('user', text);
+            appendMessageToDOM('user', text);
             chatHistory.push({ role: 'user', content: text });
             saveChatHistory();
 
@@ -330,19 +587,21 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
 
             try {
                 const responseText = await callGroqAPI(chatHistory);
+
                 typingEl.classList.add('hidden');
                 
-                // Create empty AI message row & animate text insertion
-                const messageRow = appendMessage('assistant', '');
-                const bubbleElement = messageRow.querySelector('.max-w-2xl');
+                const messageRow = appendMessageToDOM('assistant', '');
+                const contentEl = messageRow.querySelector('.msg-content');
                 
-                await animateTextWordByWord(bubbleElement, responseText, 25);
+                await animateTextWordByWord(contentEl, responseText, 25);
                 chatHistory.push({ role: 'assistant', content: responseText });
                 saveChatHistory();
             } catch (error) {
                 typingEl.classList.add('hidden');
-                console.error("API Error:", error);
-                appendMessage('assistant', `Houston, we have a glitch! Error connecting to Groq API: ${error.message}. Please verify the Groq API key configured in the script.`);
+                console.error("Groq API Error:", error);
+                const messageRow = appendMessageToDOM('assistant', '');
+                const contentEl = messageRow.querySelector('.msg-content');
+                contentEl.innerHTML = `<span class="text-rose-400">Error generating AI response: ${escapeHtml(error.message)}</span>`;
                 chatHistory.pop();
                 saveChatHistory();
             } finally {
@@ -353,7 +612,6 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
         async function callGroqAPI(history) {
             const apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
             
-            // OpenAI/Groq compatible message list
             const messages = [
                 { role: 'system', content: SYSTEM_INSTRUCTION },
                 ...history
@@ -361,7 +619,6 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
 
             let lastError = null;
 
-            // Iterate over fallback models in case specific ones are inactive or unaccessible
             for (const model of GROQ_MODELS) {
                 const payload = {
                     model: model,
@@ -395,11 +652,502 @@ Maintain an energetic, witty, space-enthusiast tone without using emojis in your
                 } catch (err) {
                     console.warn(`Attempt with model '${model}' failed:`, err.message);
                     lastError = err;
-                    // Continue trying next available model in candidate list
                 }
             }
 
             throw lastError || new Error("Failed to reach any available Groq model.");
+        }
+
+        // --- WATER ROCKET LAUNCH SIMULATOR PHYSICS ---
+        let simData = {
+            apogee: 0,
+            range: 0,
+            peakThrust: 0,
+            stability: 1.8,
+            trajectoryPoints: [],
+            isSimulating: false
+        };
+
+        // Particle System for realistic rocket water exhaust mist & thrust plume
+        let particles = [];
+
+        class Particle {
+            constructor(x, y, vx, vy, color, life, size) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx + (Math.random() - 0.5) * 1.5;
+                this.vy = vy + (Math.random() - 0.5) * 1.5;
+                this.color = color;
+                this.maxLife = life;
+                this.life = life;
+                this.size = size;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                this.size *= 0.96;
+            }
+
+            draw(ctx) {
+                if (this.life <= 0 || this.size <= 0.2) return;
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function calculateTrajectoryPhysics() {
+            const psi = parseFloat(document.getElementById('sim-psi').value) || 60;
+            const waterFrac = (parseFloat(document.getElementById('sim-water').value) || 33) / 100;
+            const bottleVolL = parseFloat(document.getElementById('sim-vol').value) || 2.0;
+            const emptyMassG = parseFloat(document.getElementById('sim-mass').value) || 180;
+            const nozzleDiaMm = parseFloat(document.getElementById('sim-nozzle').value) || 21;
+            const Cd = parseFloat(document.getElementById('sim-cd').value) || 0.35;
+            const launchAngleDeg = parseFloat(document.getElementById('sim-angle').value) || 75;
+
+            const Pa = 101325;
+            const P0 = psi * 6894.76 + Pa;
+            const V0 = bottleVolL * 0.001;
+            const Vw = V0 * waterFrac;
+            const Va = V0 - Vw;
+            const waterMass = Vw * 1000;
+            const emptyMass = emptyMassG / 1000;
+            const totalMass = emptyMass + waterMass;
+            const nozzleArea = Math.PI * Math.pow((nozzleDiaMm / 1000) / 2, 2);
+
+            const peakThrust = 2 * (P0 - Pa) * nozzleArea;
+            
+            let dt = 0.025;
+            let time = 0;
+            let x = 0;
+            let y = 0;
+            let angleRad = launchAngleDeg * (Math.PI / 180);
+            let vx = 3 * Math.cos(angleRad);
+            let vy = 3 * Math.sin(angleRad);
+            let currentMass = totalMass;
+            let currentVa = Va;
+            let points = [];
+            
+            const g = 9.81;
+            const rhoAir = 1.225;
+            const rhoWater = 1000;
+            const bottleRadius = 0.05;
+            const frontalArea = Math.PI * bottleRadius * bottleRadius;
+
+            let maxAlt = 0;
+
+            while (y >= 0 && time < 25) {
+                let isThrusting = currentMass > emptyMass;
+                points.push({ 
+                    x: x, 
+                    y: y, 
+                    time: time, 
+                    vx: vx, 
+                    vy: vy, 
+                    isThrusting: isThrusting,
+                    mass: currentMass
+                });
+
+                let thrust = 0;
+                if (isThrusting) {
+                    let currentP = P0 * Math.pow(Va / currentVa, 1.4);
+                    let deltaP = Math.max(0, currentP - Pa);
+                    let exitVel = Math.sqrt(2 * deltaP / rhoWater);
+                    let massFlowRate = rhoWater * nozzleArea * exitVel;
+                    
+                    thrust = massFlowRate * exitVel;
+                    let massLoss = massFlowRate * dt;
+
+                    if (currentMass - massLoss <= emptyMass) {
+                        currentMass = emptyMass;
+                    } else {
+                        currentMass -= massLoss;
+                        currentVa += massLoss / rhoWater;
+                    }
+                }
+
+                let speed = Math.sqrt(vx * vx + vy * vy);
+                let drag = 0.5 * rhoAir * speed * speed * Cd * frontalArea;
+                
+                let theta = speed > 0.1 ? Math.atan2(vy, vx) : angleRad;
+                let Fx = thrust * Math.cos(theta) - drag * Math.cos(theta);
+                let Fy = thrust * Math.sin(theta) - drag * Math.sin(theta) - (currentMass * g);
+
+                let ax = Fx / currentMass;
+                let ay = Fy / currentMass;
+
+                vx += ax * dt;
+                vy += ay * dt;
+                x += vx * dt;
+                y += vy * dt;
+
+                if (y > maxAlt) maxAlt = y;
+                time += dt;
+
+                if (points.length > 1200) break;
+            }
+
+            simData.apogee = Math.max(0, maxAlt);
+            simData.range = Math.max(0, x);
+            simData.peakThrust = peakThrust;
+            simData.stability = (1.5 + (nozzleDiaMm / 30)).toFixed(1);
+            simData.trajectoryPoints = points;
+        }
+
+        function updateSimCalculations() {
+            calculateTrajectoryPhysics();
+            document.getElementById('calc-apogee').textContent = `${simData.apogee.toFixed(1)} m`;
+            document.getElementById('calc-range').textContent = `${simData.range.toFixed(1)} m`;
+            document.getElementById('calc-thrust').textContent = `${simData.peakThrust.toFixed(1)} N`;
+            document.getElementById('calc-stability').textContent = `${simData.stability} Calibers`;
+
+            if (!simData.isSimulating) {
+                drawStaticTrajectory();
+            }
+        }
+
+        function initCanvas() {
+            const canvas = document.getElementById('sim-canvas');
+            if (!canvas) return;
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth;
+            canvas.height = parent.clientHeight;
+            drawStaticTrajectory();
+        }
+
+        function drawCanvasEnvironment(ctx, w, h, scaleX, scaleY) {
+            // Background starry gradient
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, h);
+            bgGradient.addColorStop(0, '#050814');
+            bgGradient.addColorStop(0.7, '#0f172a');
+            bgGradient.addColorStop(1, '#1e1b4b');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, w, h);
+
+            // Subtle Background Grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < w; i += 35) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, h);
+                ctx.stroke();
+            }
+            for (let j = 0; j < h; j += 35) {
+                ctx.beginPath();
+                ctx.moveTo(0, j);
+                ctx.lineTo(w, j);
+                ctx.stroke();
+            }
+
+            // Launch Ground Line & Launch Pad Frame
+            const groundY = h - 30;
+            
+            // Ground Grass / Soil Line
+            const groundGrad = ctx.createLinearGradient(0, groundY, 0, h);
+            groundGrad.addColorStop(0, '#10b981');
+            groundGrad.addColorStop(0.2, '#047857');
+            groundGrad.addColorStop(1, '#022c22');
+            ctx.fillStyle = groundGrad;
+            ctx.fillRect(0, groundY, w, 30);
+
+            ctx.strokeStyle = '#34d399';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(w, groundY);
+            ctx.stroke();
+
+            // Launch Pad Guide Stand at (30, groundY)
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(20, groundY);
+            ctx.lineTo(40, groundY);
+            ctx.moveTo(30, groundY);
+            ctx.lineTo(30, groundY - 15);
+            ctx.stroke();
+        }
+
+        function drawRocketGraphic(ctx, x, y, angleRad, isThrusting, scale) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angleRad + Math.PI / 2);
+
+            // Rocket dimensions scale
+            const len = 22;
+            const width = 7;
+
+            // Rocket Fins (Left & Right)
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.moveTo(-width / 2, len / 4);
+            ctx.lineTo(-width - 4, len / 2 + 2);
+            ctx.lineTo(-width / 2, len / 2);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(width / 2, len / 4);
+            ctx.lineTo(width + 4, len / 2 + 2);
+            ctx.lineTo(width / 2, len / 2);
+            ctx.closePath();
+            ctx.fill();
+
+            // Main Pressure Tank / Bottle Body (PET Translucent Blue Gradient)
+            const bodyGrad = ctx.createLinearGradient(-width/2, 0, width/2, 0);
+            bodyGrad.addColorStop(0, '#38bdf8');
+            bodyGrad.addColorStop(0.5, '#0284c7');
+            bodyGrad.addColorStop(1, '#0369a1');
+            ctx.fillStyle = bodyGrad;
+            ctx.beginPath();
+            ctx.roundRect(-width / 2, -len / 2 + 4, width, len - 4, [2, 2, 1, 1]);
+            ctx.fill();
+
+            // Nose Cone (Aerodynamic Top)
+            ctx.fillStyle = '#6366f1';
+            ctx.beginPath();
+            ctx.moveTo(-width / 2, -len / 2 + 4);
+            ctx.quadraticCurveTo(0, -len / 2 - 8, width / 2, -len / 2 + 4);
+            ctx.closePath();
+            ctx.fill();
+
+            // Water Chamber Highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillRect(-width / 2 + 1, -len / 4, width - 2, len / 3);
+
+            // Nozzle Base
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(-width / 4, len / 2, width / 2, 3);
+
+            ctx.restore();
+        }
+
+        function drawStaticTrajectory() {
+            const canvas = document.getElementById('sim-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const points = simData.trajectoryPoints;
+            const maxRealX = Math.max(10, simData.range * 1.15);
+            const maxRealY = Math.max(10, simData.apogee * 1.25);
+
+            const scaleX = (w - 70) / maxRealX;
+            const scaleY = (h - 60) / maxRealY;
+
+            drawCanvasEnvironment(ctx, w, h, scaleX, scaleY);
+
+            if (!points || points.length === 0) return;
+
+            const groundY = h - 30;
+
+            // Draw Full Static Trajectory Line (Glow effect)
+            ctx.shadowColor = '#6366f1';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(99, 102, 241, 0.7)';
+            ctx.setLineDash([5, 4]);
+            ctx.lineWidth = 2.5;
+
+            for (let i = 0; i < points.length; i++) {
+                let px = 30 + points[i].x * scaleX;
+                let py = groundY - points[i].y * scaleY;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.shadowBlur = 0;
+
+            // Draw Apogee Peak Flag / Marker
+            let apogeePoint = points.reduce((max, p) => p.y > max.y ? p : max, points[0]);
+            if (apogeePoint) {
+                let aX = 30 + apogeePoint.x * scaleX;
+                let aY = groundY - apogeePoint.y * scaleY;
+
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.arc(aX, aY, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#fef3c7';
+                ctx.font = '10px monospace';
+                ctx.fillText(`Apogee: ${apogeePoint.y.toFixed(1)}m`, aX - 35, aY - 10);
+            }
+
+            // Draw Initial Static Rocket at Pad
+            const initialAngle = (parseFloat(document.getElementById('sim-angle').value) || 75) * (Math.PI / 180);
+            drawRocketGraphic(ctx, 30, groundY - 10, initialAngle, false, 1);
+        }
+
+        function resetSimulationCanvas() {
+            if (simAnimationId) cancelAnimationFrame(simAnimationId);
+            simData.isSimulating = false;
+            particles = [];
+            document.getElementById('hud-alt').textContent = "0.0";
+            document.getElementById('hud-dist').textContent = "0.0";
+            document.getElementById('hud-vel').textContent = "0.0";
+            document.getElementById('hud-status').textContent = "READY";
+            document.getElementById('hud-status').className = "text-emerald-400 font-sans font-semibold";
+            drawStaticTrajectory();
+        }
+
+        function startLaunchAnimation() {
+            if (simData.isSimulating) return;
+            calculateTrajectoryPhysics();
+
+            const canvas = document.getElementById('sim-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            const points = simData.trajectoryPoints;
+            if (!points || points.length === 0) return;
+
+            simData.isSimulating = true;
+            particles = [];
+            document.getElementById('hud-status').textContent = "IN FLIGHT";
+            document.getElementById('hud-status').className = "text-amber-400 font-sans font-semibold";
+
+            const maxRealX = Math.max(10, simData.range * 1.15);
+            const maxRealY = Math.max(10, simData.apogee * 1.25);
+
+            const scaleX = (w - 70) / maxRealX;
+            const scaleY = (h - 60) / maxRealY;
+            const groundY = h - 30;
+
+            let index = 0;
+
+            function animateStep() {
+                ctx.clearRect(0, 0, w, h);
+
+                drawCanvasEnvironment(ctx, w, h, scaleX, scaleY);
+
+                // Draw Predicted Trajectory Light Background Guide Line
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.setLineDash([3, 3]);
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < points.length; i++) {
+                    let px = 30 + points[i].x * scaleX;
+                    let py = groundY - points[i].y * scaleY;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw Glowing Active Flight Trajectory Line
+                ctx.shadowColor = '#38bdf8';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.strokeStyle = '#38bdf8';
+                ctx.lineWidth = 3;
+                for (let i = 0; i <= index; i++) {
+                    let px = 30 + points[i].x * scaleX;
+                    let py = groundY - points[i].y * scaleY;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                const currentPt = points[index];
+                const rx = 30 + currentPt.x * scaleX;
+                const ry = groundY - currentPt.y * scaleY;
+
+                let flightAngle = Math.atan2(-currentPt.vy, currentPt.vx);
+
+                // Spawn Water Mist & Thrust Particles during powered phase
+                if (currentPt.isThrusting) {
+                    const thrustDir = flightAngle + Math.PI; // Thrust sprays backward
+                    for (let p = 0; p < 4; p++) {
+                        const speed = Math.random() * 4 + 2;
+                        const pVx = Math.cos(thrustDir) * speed;
+                        const pVy = Math.sin(thrustDir) * speed;
+                        const color = Math.random() > 0.3 ? '#38bdf8' : '#e0f2fe'; // High velocity cyan water droplet
+                        particles.push(new Particle(rx, ry, pVx, pVy, color, 18, Math.random() * 4 + 2));
+                    }
+                } else if (index < points.length - 1) {
+                    // Small ambient tail trail after burnout
+                    if (Math.random() > 0.5) {
+                        particles.push(new Particle(rx, ry, -currentPt.vx * 0.1, -currentPt.vy * 0.1, 'rgba(255,255,255,0.4)', 12, 2));
+                    }
+                }
+
+                // Update & Render Particle System
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    particles[i].draw(ctx);
+                    if (particles[i].life <= 0) particles.splice(i, 1);
+                }
+
+                // Draw Water Rocket Graphic at current position
+                drawRocketGraphic(ctx, rx, ry, flightAngle, currentPt.isThrusting, 1);
+
+                // Update HUD Numbers
+                const currentSpeed = Math.sqrt(currentPt.vx * currentPt.vx + currentPt.vy * currentPt.vy);
+                document.getElementById('hud-alt').textContent = currentPt.y.toFixed(1);
+                document.getElementById('hud-dist').textContent = currentPt.x.toFixed(1);
+                document.getElementById('hud-vel').textContent = currentSpeed.toFixed(1);
+
+                // Draw Apogee indicator when passing peak altitude
+                let currentMaxYPoint = points.slice(0, index + 1).reduce((max, p) => p.y > max.y ? p : max, points[0]);
+                if (currentMaxYPoint && index > 10) {
+                    let aX = 30 + currentMaxYPoint.x * scaleX;
+                    let aY = groundY - currentMaxYPoint.y * scaleY;
+
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath();
+                    ctx.arc(aX, aY, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                index += 2; // Frame increment step
+
+                if (index < points.length) {
+                    simAnimationId = requestAnimationFrame(animateStep);
+                } else {
+                    simData.isSimulating = false;
+                    document.getElementById('hud-status').textContent = "LANDED";
+                    document.getElementById('hud-status').className = "text-cyan-400 font-sans font-semibold";
+                    
+                    const finalPt = points[points.length - 1];
+                    const lx = 30 + finalPt.x * scaleX;
+                    const ly = groundY;
+
+                    // Landing splash animation effect
+                    for (let s = 0; s < 15; s++) {
+                        particles.push(new Particle(lx, ly, (Math.random() - 0.5) * 5, -Math.random() * 3, '#34d399', 20, 3));
+                    }
+
+                    // Final apogee callout banner
+                    let maxAltPt = points.reduce((max, p) => p.y > max.y ? p : max, points[0]);
+                    let aX = 30 + maxAltPt.x * scaleX;
+                    let aY = groundY - maxAltPt.y * scaleY;
+                    
+                    ctx.fillStyle = '#f59e0b';
+                    ctx.beginPath();
+                    ctx.arc(aX, aY, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.font = 'bold 11px Space Grotesk, sans-serif';
+                    ctx.fillText(`Peak Apogee: ${maxAltPt.y.toFixed(1)}m`, aX - 40, aY - 12);
+                }
+            }
+
+            animateStep();
         }
     </script>
 </body>
